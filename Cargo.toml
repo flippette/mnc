@@ -10,6 +10,11 @@ bh1750 = "0.1"
 cortex-m-rt = "0.7"
 defmt = "0.3"
 defmt-rtt = "0.4"
+static_cell = "2.1"
+
+[dependencies.cortex-m]
+version = "0.7"
+features = ["critical-section-single-core"]
 
 [dependencies.embassy-executor]
 git = "https://github.com/embassy-rs/embassy"
@@ -25,13 +30,7 @@ features = [
 [dependencies.embassy-rp]
 git = "https://github.com/embassy-rs/embassy"
 rev = "050d3d1a092eca69b14bd07cd5ca8496a0f09f2d"
-features = [
-  "rp2040",
-  "boot2-generic-03h",
-  "critical-section-impl",
-  "time-driver",
-  "defmt",
-]
+features = ["rp2040", "boot2-generic-03h", "time-driver", "defmt"]
 
 [dependencies.embassy-sync]
 git = "https://github.com/embassy-rs/embassy"
@@ -45,3 +44,7 @@ features = ["defmt-timestamp-uptime-s"]
 [dependencies.panic-probe]
 version = "0.3"
 features = ["print-defmt"]
+
+[dependencies.portable-atomic]
+version = "1.9"
+features = ["critical-section"]

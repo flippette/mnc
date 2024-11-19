@@ -14,31 +14,32 @@ use embassy_rp::{
     peripherals::*,
 };
 use embassy_sync::{
-    blocking_mutex::raw::CriticalSectionRawMutex,
+    blocking_mutex::raw::NoopRawMutex,
     watch::{self, Watch},
 };
 use embassy_time::{Delay, Timer};
 use panic_probe as _;
+use static_cell::ConstStaticCell;
 
 #[main]
 async fn main(s: Spawner) {
     let p = embassy_rp::init(<_>::default());
     info!("init");
 
-    static LIGHT_SENSOR_WATCH: Watch<CriticalSectionRawMutex, f32, 1> =
-        Watch::new();
+    static LIGHT_SENSOR_WATCH: ConstStaticCell<Watch<NoopRawMutex, f32, 1>> =
+        ConstStaticCell::new(Watch::new());
     s.must_spawn(light_sensor(
         I2c::new_async(p.I2C0, p.PIN_17, p.PIN_16, Irqs, <_>::default()),
-        LIGHT_SENSOR_WATCH.sender(),
+        LIGHT_SENSOR_WATCH.take().sender(),
     ));
     debug!("spawned light sensor handler");
 
-    static MOISTURE_SENSOR_WATCH: Watch<CriticalSectionRawMutex, u16, 1> =
-        Watch::new();
+    static MOISTURE_SENSOR_WATCH: ConstStaticCell<Watch<NoopRawMutex, u16, 1>> =
+        ConstStaticCell::new(Watch::new());
     s.must_spawn(moisture_sensor(
         Adc::new(p.ADC, Irqs, <_>::default()),
         adc::Channel::new_pin(p.PIN_26, Pull::Down),
-        MOISTURE_SENSOR_WATCH.sender(),
+        MOISTURE_SENSOR_WATCH.take().sender(),
     ));
     debug!("spawned moisture sensor handler");
 }
@@ -58,7 +59,7 @@ bind_interrupts! {
 #[task]
 async fn light_sensor(
     i2c: I2c<'static, I2C0, i2c::Async>,
-    tx: watch::Sender<'static, CriticalSectionRawMutex, f32, 1>,
+    tx: watch::Sender<'static, NoopRawMutex, f32, 1>,
 ) {
     let mut sensor = BH1750::new(i2c, Delay, false);
     if let Err(e) =
@@ -91,7 +92,7 @@ async fn light_sensor(
 async fn moisture_sensor(
     mut adc: Adc<'static, adc::Async>,
     mut ch: adc::Channel<'static>,
-    tx: watch::Sender<'static, CriticalSectionRawMutex, u16, 1>,
+    tx: watch::Sender<'static, NoopRawMutex, u16, 1>,
 ) {
     loop {
         match adc.read(&mut ch).await {
