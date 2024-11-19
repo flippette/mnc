@@ -57,6 +57,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bh1750"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eaf0f2134f0b6ac900efff9be5498d1736b8e9cf27369858e34e383da406666d"
+dependencies = [
+ "embedded-hal 1.0.0",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -348,6 +357,7 @@ source = "git+https://github.com/embassy-rs/embassy?rev=050d3d1a092eca69b14bd07c
 dependencies = [
  "cortex-m",
  "critical-section",
+ "defmt",
  "num-traits",
 ]
 
@@ -361,6 +371,7 @@ dependencies = [
  "cortex-m",
  "cortex-m-rt",
  "critical-section",
+ "defmt",
  "document-features",
  "embassy-embedded-hal",
  "embassy-futures",
@@ -436,6 +447,9 @@ source = "git+https://github.com/embassy-rs/embassy?rev=050d3d1a092eca69b14bd07c
 name = "embassy-usb-driver"
 version = "0.1.0"
 source = "git+https://github.com/embassy-rs/embassy?rev=050d3d1a092eca69b14bd07cd5ca8496a0f09f2d#050d3d1a092eca69b14bd07cd5ca8496a0f09f2d"
+dependencies = [
+ "defmt",
+]
 
 [[package]]
 name = "embedded-hal"
@@ -738,6 +752,7 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 name = "mnc"
 version = "0.1.0"
 dependencies = [
+ "bh1750",
  "cortex-m-rt",
  "defmt",
  "defmt-rtt",

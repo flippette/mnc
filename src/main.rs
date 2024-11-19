@@ -2,13 +2,101 @@
 #![no_main]
 #![feature(impl_trait_in_assoc_type)]
 
-use defmt::info;
+use bh1750::{BH1750Error, BH1750};
+use defmt::{debug, error, info};
 use defmt_rtt as _;
-use embassy_executor::{main, Spawner};
+use embassy_executor::{main, task, Spawner};
+use embassy_rp::{
+    adc::{self, Adc},
+    bind_interrupts,
+    gpio::Pull,
+    i2c::{self, I2c},
+    peripherals::*,
+};
+use embassy_sync::{
+    blocking_mutex::raw::CriticalSectionRawMutex,
+    watch::{self, Watch},
+};
+use embassy_time::{Delay, Timer};
 use panic_probe as _;
 
 #[main]
-async fn main(_s: Spawner) {
-    let _p = embassy_rp::init(<_>::default());
+async fn main(s: Spawner) {
+    let p = embassy_rp::init(<_>::default());
     info!("init");
+
+    static LIGHT_SENSOR_WATCH: Watch<CriticalSectionRawMutex, f32, 1> =
+        Watch::new();
+    s.must_spawn(light_sensor(
+        I2c::new_async(p.I2C0, p.PIN_17, p.PIN_16, Irqs, <_>::default()),
+        LIGHT_SENSOR_WATCH.sender(),
+    ));
+    debug!("spawned light sensor handler");
+
+    static MOISTURE_SENSOR_WATCH: Watch<CriticalSectionRawMutex, u16, 1> =
+        Watch::new();
+    s.must_spawn(moisture_sensor(
+        Adc::new(p.ADC, Irqs, <_>::default()),
+        adc::Channel::new_pin(p.PIN_26, Pull::Down),
+        MOISTURE_SENSOR_WATCH.sender(),
+    ));
+    debug!("spawned moisture sensor handler");
+}
+
+bind_interrupts! {
+    struct Irqs {
+        I2C0_IRQ => i2c::InterruptHandler<I2C0>;
+        ADC_IRQ_FIFO => adc::InterruptHandler;
+    }
+}
+
+#[task]
+async fn light_sensor(
+    i2c: I2c<'static, I2C0, i2c::Async>,
+    tx: watch::Sender<'static, CriticalSectionRawMutex, f32, 1>,
+) {
+    let mut sensor = BH1750::new(i2c, Delay, false);
+    if let Err(e) =
+        sensor.start_continuous_measurement(bh1750::Resolution::High)
+    {
+        panic!("failed to initialize light sensor: {:?}", e);
+    }
+
+    debug!("initialized light sensor");
+
+    loop {
+        match sensor.get_current_measurement(bh1750::Resolution::High) {
+            Ok(v) => {
+                tx.send(v);
+                debug!("read from light sensor: {}", v);
+            }
+            Err(BH1750Error::MeasurementTimeOutOfRange) => error!(
+                "error reading light sensor: measurement time out of range",
+            ),
+            Err(BH1750Error::I2C(e)) => {
+                error!("error reading light sensor: {}", e)
+            }
+        }
+
+        Timer::after_secs(60).await;
+    }
+}
+
+#[task]
+async fn moisture_sensor(
+    mut adc: Adc<'static, adc::Async>,
+    mut ch: adc::Channel<'static>,
+    tx: watch::Sender<'static, CriticalSectionRawMutex, u16, 1>,
+) {
+    loop {
+        match adc.read(&mut ch).await {
+            Ok(v) => {
+                tx.send(v);
+                debug!("read from moisture sensor: {}", v);
+            }
+            Err(e) => error!("error reading moisture sensor: {:?}", e),
+        }
+
+        Timer::after_secs(60).await;
+    }
 }

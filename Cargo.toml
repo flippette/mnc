@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bh1750 = "0.1"
 cortex-m-rt = "0.7"
 defmt = "0.3"
 defmt-rtt = "0.4"
@@ -27,6 +28,7 @@ features = [
   "boot2-generic-03h",
   "critical-section-impl",
   "time-driver",
+  "defmt",
 ]
 
 [dependencies.embassy-sync]
