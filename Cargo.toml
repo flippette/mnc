@@ -2,6 +2,8 @@
 name = "mnc"
 version = "0.1.0"
 edition = "2021"
+authors = ["flippette <me@flippo.cc>"]
+license = "Unlicense"
 
 [dependencies]
 bh1750 = "0.1"
