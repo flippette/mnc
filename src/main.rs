@@ -17,9 +17,11 @@ use embassy_sync::{
     blocking_mutex::raw::NoopRawMutex,
     watch::{self, Watch},
 };
-use embassy_time::{Delay, Timer};
+use embassy_time::{Delay, Duration, Timer};
 use panic_probe as _;
 use static_cell::ConstStaticCell;
+
+const COOLDOWN: Duration = Duration::from_secs(1);
 
 #[main]
 async fn main(s: Spawner) {
@@ -88,7 +90,7 @@ async fn light_sensor(
             }
         }
 
-        Timer::after_secs(60).await;
+        Timer::after(COOLDOWN).await;
     }
 }
 
@@ -107,6 +109,6 @@ async fn moisture_sensor(
             Err(e) => error!("error reading moisture sensor: adc error: {}", e),
         }
 
-        Timer::after_secs(60).await;
+        Timer::after(COOLDOWN).await;
     }
 }
