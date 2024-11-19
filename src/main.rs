@@ -3,7 +3,7 @@
 #![feature(impl_trait_in_assoc_type)]
 
 use bh1750::{BH1750Error, BH1750};
-use defmt::{debug, error, info};
+use defmt::{debug, error, info, panic};
 use defmt_rtt as _;
 use embassy_executor::{main, task, Spawner};
 use embassy_rp::{
@@ -41,6 +41,11 @@ async fn main(s: Spawner) {
         MOISTURE_SENSOR_WATCH.sender(),
     ));
     debug!("spawned moisture sensor handler");
+}
+
+#[defmt::panic_handler]
+fn defmt_panic() -> ! {
+    cortex_m::asm::udf()
 }
 
 bind_interrupts! {
