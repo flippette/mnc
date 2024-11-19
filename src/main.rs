@@ -62,10 +62,14 @@ async fn light_sensor(
     tx: watch::Sender<'static, NoopRawMutex, f32, 1>,
 ) {
     let mut sensor = BH1750::new(i2c, Delay, false);
-    if let Err(e) =
-        sensor.start_continuous_measurement(bh1750::Resolution::High)
-    {
-        panic!("failed to initialize light sensor: {:?}", e);
+    match sensor.start_continuous_measurement(bh1750::Resolution::High) {
+        Err(BH1750Error::MeasurementTimeOutOfRange) => panic!(
+            "failed to initialize light sensor: measurement time out of range"
+        ),
+        Err(BH1750Error::I2C(e)) => {
+            panic!("failed to initialize light sensor: i2c error: {}", e)
+        }
+        Ok(_) => {}
     }
 
     debug!("initialized light sensor");
@@ -80,7 +84,7 @@ async fn light_sensor(
                 "error reading light sensor: measurement time out of range",
             ),
             Err(BH1750Error::I2C(e)) => {
-                error!("error reading light sensor: {}", e)
+                error!("error reading light sensor: i2c error: {}", e)
             }
         }
 
@@ -100,7 +104,7 @@ async fn moisture_sensor(
                 tx.send(v);
                 debug!("read from moisture sensor: {}", v);
             }
-            Err(e) => error!("error reading moisture sensor: {:?}", e),
+            Err(e) => error!("error reading moisture sensor: adc error: {}", e),
         }
 
         Timer::after_secs(60).await;
