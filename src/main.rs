@@ -22,7 +22,7 @@ use embassy_time::Duration;
 use panic_probe as _;
 use static_cell::ConstStaticCell;
 
-const COOLDOWN: Duration = Duration::from_secs(1);
+const COOLDOWN: Duration = Duration::from_secs(30);
 
 #[main]
 async fn main(s: Spawner) {

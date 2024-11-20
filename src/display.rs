@@ -26,10 +26,12 @@ use mipidsi::{
 };
 use profont::PROFONT_18_POINT;
 
-const DISPLAY_RETRY_DELAY: Duration = Duration::from_secs(1);
-const UPDATE_DELAY: Duration = Duration::from_secs(1);
+const DISPLAY_RETRY_DELAY: Duration = Duration::from_secs(5);
+const UPDATE_DELAY: Duration = Duration::from_secs(30);
 
 /// Driver task for the ST7789 240x320 TFT LCD display.
+///
+/// TODO: This doesn't handle display hotswapping yet, fix that
 #[task]
 pub async fn driver(
     spi: Spi<'static, SPI1, spi::Blocking>,
