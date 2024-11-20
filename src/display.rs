@@ -13,7 +13,7 @@ use embassy_sync::{blocking_mutex::raw::NoopRawMutex, signal::Signal};
 use embassy_time::{Delay, Duration, Timer};
 use embedded_graphics::{
     geometry::*, mono_font::MonoTextStyle, pixelcolor::Rgb565, prelude::*,
-    text::Text,
+    primitives::*, text::Text,
 };
 use embedded_hal_bus::spi::ExclusiveDevice;
 use embedded_layout::{layout::linear::LinearLayout, prelude::*};
@@ -96,6 +96,8 @@ async fn try_drive(
     .with_alignment(horizontal::Right)
     .arrange();
 
+    let mut last_table_bounds = Rectangle::zero();
+
     loop {
         let (light, moisture) =
             join(light_sig.wait(), moisture_sig.wait()).await;
@@ -125,13 +127,10 @@ async fn try_drive(
                     vertical::Center,
                 );
 
-        display.fill_solid(
-            &table
-                .bounds()
-                .resized_width(display.size().width, AnchorX::Center),
-            Rgb565::CSS_BLACK,
-        )?;
+        display.fill_solid(&last_table_bounds, Rgb565::CSS_BLACK)?;
         table.draw(display)?;
+
+        last_table_bounds = table.bounds();
 
         Timer::after(UPDATE_DELAY).await;
     }
