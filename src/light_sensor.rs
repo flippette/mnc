@@ -5,7 +5,7 @@ use embassy_rp::{
     i2c::{self, I2c},
     peripherals::I2C0,
 };
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex, watch};
+use embassy_sync::{blocking_mutex::raw::NoopRawMutex, signal::Signal};
 use embassy_time::{Delay, Duration, Timer};
 
 use crate::COOLDOWN;
@@ -23,14 +23,14 @@ const MTREG_DEFAULT: u8 = 69; // no really
 #[task]
 pub async fn driver(
     i2c: I2c<'static, I2C0, i2c::Async>,
-    tx: watch::Sender<'static, NoopRawMutex, f32, 1>,
+    sig: &'static Signal<NoopRawMutex, f32>,
 ) {
     let mut sensor = BH1750::new(i2c, Delay, false);
 
     loop {
         match measure(&mut sensor).await {
             Ok(v) => {
-                tx.send(v);
+                sig.signal(v);
                 debug!("light sensor read -> {} lx", v);
             }
             Err(i2c::Error::Abort(i2c::AbortReason::NoAcknowledge)) => {

@@ -1,7 +1,7 @@
 use defmt::{debug, error};
 use embassy_executor::task;
 use embassy_rp::adc::{self, Adc};
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex, watch};
+use embassy_sync::{blocking_mutex::raw::NoopRawMutex, signal::Signal};
 use embassy_time::Timer;
 
 use crate::COOLDOWN;
@@ -17,12 +17,12 @@ const MOISTURE_SUB_MAX: u16 = 950;
 pub async fn driver(
     mut adc: Adc<'static, adc::Async>,
     mut ch: adc::Channel<'static>,
-    tx: watch::Sender<'static, NoopRawMutex, u16, 1>,
+    sig: &'static Signal<NoopRawMutex, u16>,
 ) {
     loop {
         match adc.read(&mut ch).await {
             Ok(v) => {
-                tx.send(v);
+                sig.signal(v);
                 debug!(
                     "moisture sensor read -> {} ({})",
                     v,

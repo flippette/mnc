@@ -26,4 +26,5 @@ opt-level = "z"
 codegen-units = 1
 panic = "abort"
 strip = false
+debug = 2
 lto = true

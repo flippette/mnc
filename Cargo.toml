@@ -10,6 +10,10 @@ bh1750 = "0.1"
 cortex-m-rt = "0.7"
 defmt = "0.3"
 defmt-rtt = "0.4"
+display-interface-spi = "0.5"
+embedded-layout = "0.4"
+mipidsi = "0.8"
+profont = "0.7"
 static_cell = "2.1"
 
 [dependencies.cortex-m]
@@ -27,6 +31,11 @@ features = [
   "nightly",
 ]
 
+[dependencies.embassy-futures]
+git = "https://github.com/embassy-rs/embassy"
+rev = "050d3d1a092eca69b14bd07cd5ca8496a0f09f2d"
+features = ["defmt"]
+
 [dependencies.embassy-rp]
 git = "https://github.com/embassy-rs/embassy"
 rev = "050d3d1a092eca69b14bd07cd5ca8496a0f09f2d"
@@ -40,6 +49,18 @@ rev = "050d3d1a092eca69b14bd07cd5ca8496a0f09f2d"
 git = "https://github.com/embassy-rs/embassy"
 rev = "050d3d1a092eca69b14bd07cd5ca8496a0f09f2d"
 features = ["defmt-timestamp-uptime-s"]
+
+[dependencies.embedded-graphics]
+version = "0.8"
+features = ["defmt"]
+
+[dependencies.embedded-hal-bus]
+version = "0.2"
+features = ["defmt-03"]
+
+[dependencies.heapless]
+version = "0.8"
+features = ["defmt-03"]
 
 [dependencies.panic-probe]
 version = "0.3"
