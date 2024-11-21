@@ -24,7 +24,7 @@ use mipidsi::{
     options::{ColorInversion, Orientation, Rotation},
     Display,
 };
-use profont::PROFONT_18_POINT;
+use profont::PROFONT_24_POINT;
 
 const DISPLAY_RETRY_DELAY: Duration = Duration::from_secs(5);
 const UPDATE_DELAY: Duration = Duration::from_secs(30);
@@ -46,7 +46,7 @@ pub async fn driver(
         SPIInterface::new(ExclusiveDevice::new(spi, cs, Delay).unwrap(), dc);
     let mut display = mipidsi::Builder::new(ST7789, di)
         .display_size(240, 320)
-        .orientation(Orientation::new().rotate(Rotation::Deg90))
+        .orientation(Orientation::new().rotate(Rotation::Deg270))
         .invert_colors(ColorInversion::Inverted)
         .reset_pin(rst)
         .init(&mut Delay)
@@ -89,7 +89,7 @@ async fn try_drive(
     display.wake(&mut Delay)?;
     display.clear(Rgb565::CSS_BLACK)?;
 
-    let text_style = MonoTextStyle::new(&PROFONT_18_POINT, Rgb565::CSS_WHITE);
+    let text_style = MonoTextStyle::new(&PROFONT_24_POINT, Rgb565::CSS_WHITE);
 
     let labels = LinearLayout::vertical(
         Chain::new(Text::new("light: ", Point::zero(), text_style))
