@@ -15,14 +15,14 @@ use embassy_rp::{
     gpio::{Level, Output, Pull},
     i2c::{self, I2c},
     peripherals::I2C0,
-    spi::Spi,
+    spi::{self, Spi},
 };
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, signal::Signal};
 use embassy_time::Duration;
 use panic_probe as _;
 use static_cell::ConstStaticCell;
 
-const COOLDOWN: Duration = Duration::from_secs(30);
+const COOLDOWN: Duration = Duration::from_secs(1);
 
 #[main]
 async fn main(s: Spawner) {
@@ -50,8 +50,10 @@ async fn main(s: Spawner) {
     ));
     debug!("moisture sensor driver spawned");
 
+    let mut spi_config = spi::Config::default();
+    spi_config.frequency = 20_000_000; // this _should_ be safe...?
     s.must_spawn(display::driver(
-        Spi::new_blocking_txonly(p.SPI1, p.PIN_14, p.PIN_15, <_>::default()),
+        Spi::new_blocking_txonly(p.SPI1, p.PIN_14, p.PIN_15, spi_config),
         Output::new(p.PIN_13, Level::Low),
         Output::new(p.PIN_11, Level::Low),
         Output::new(p.PIN_10, Level::Low),

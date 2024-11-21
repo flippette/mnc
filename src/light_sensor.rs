@@ -12,7 +12,7 @@ use crate::COOLDOWN;
 
 type Sensor<'i2c> = BH1750<I2c<'i2c, I2C0, i2c::Async>, Delay>;
 
-const UNRESPONSIVE_RETRY_DELAY: Duration = Duration::from_secs(5);
+const UNRESPONSIVE_RETRY_DELAY: Duration = Duration::from_secs(1);
 
 /// The amount of time a high-resolution measurement takes by default.
 const HIGH_RES_MT: Duration = Duration::from_millis(120);
